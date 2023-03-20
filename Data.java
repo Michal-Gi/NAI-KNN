@@ -25,8 +25,9 @@ public class Data {
     }
 
     /**
-        Returns the distance between this object on the one specified through the parameters.
-        In this case distance is the length of a vector between the two.
+     * Returns the distance between this object on the one specified through the parameters. In this case distance is the length of a vector between the two.
+     * @param other compared data object
+     * @return distance between this object and the other
      */
     public double distance(Data other){
         double res = 0;
