@@ -1,4 +1,7 @@
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -21,13 +24,19 @@ public class Main {
             prepareDatabase(trainingDataWDBC, wdbcDataDatabase);
 
             //for each line of data (read from a csv file), function checks what category the tested object fits and assigns it
-            checkAllData(testData, irisDatabase);
+            checkAllData(testData, irisDatabase, 3, true);
             System.out.println();
-            checkAllData(testDataWDBC, wdbcDataDatabase);
+            checkAllData(testDataWDBC, wdbcDataDatabase, 3, true);
 
+            //making sure there is an empty file that can be filled with data for the chart
+            FileWriter writer = new FileWriter("accuracyChart.csv", false);
+            BufferedWriter bw = new BufferedWriter(writer);
+            bw.write("");
+            bw.close();
             //creating a csv file that contains the accuracy of program for different values of k nearest neighbours
-            for(int i = 1; i<10; i++){
-
+            for(int i = 1; i<101; i++){
+                testData = new java.util.Scanner(new java.io.File(System.getProperty("user.dir") + "\\Data\\iris.test.data"));
+                checkAllData(testData, irisDatabase, i, false);
             }
 
 
@@ -69,7 +78,9 @@ public class Main {
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-            }
+            } catch (IOException e) {
+                e.printStackTrace();
+        }
     }
 
     /**
@@ -132,7 +143,7 @@ public class Main {
      * @param testData Data that is supposed to be checked
      * @param trainingDatabase Data that the new data is compared to
      */
-    public static void checkAllData(java.util.Scanner testData, List<Data> trainingDatabase){
+    public static void checkAllData(java.util.Scanner testData, List<Data> trainingDatabase, int k, boolean printResult){
         final String RESET = "\u001B[0m";
         final String RED = "\u001B[31m";
         final String GREEN = "\u001B[32m";
@@ -145,21 +156,42 @@ public class Main {
             Data TestSubject = new Data(parameters, splitedData[splitedData.length-1]);
 
             //checks k nearest neighbours and returns predicted category
-            String predictedCategory = checkAffiliation(trainingDatabase, TestSubject, 3);
+            String predictedCategory = checkAffiliation(trainingDatabase, TestSubject, k);
             TestSubject.setPredictedCategory(predictedCategory);
             //ckecks if the predicted category is correct
             if(TestSubject.getPredictedCategory().equals(TestSubject.getCategory())){
                 correct++;
-                System.out.println(GREEN + TestSubject.getPredictedCategory() + RESET);
+                if(printResult)
+                    System.out.println(GREEN + TestSubject.getPredictedCategory() + RESET);
             }
             else{
                 wrong++;
-                System.out.println(RED +"expected: "+ TestSubject.getCategory() + ", achieved: " + TestSubject.getPredictedCategory() + RESET);
+                if(printResult)
+                    System.out.println(RED +"expected: "+ TestSubject.getCategory() + ", achieved: " + TestSubject.getPredictedCategory() + RESET);
             }
         }
-        if(correct!=0)
-            System.out.println("\nThe accuracy of the program is " + (double)(correct-wrong)/correct + "%");
-        else
-            System.out.println("\nThe accuracy of the program is 0%");
+        double accuracy;
+        if(correct!=0){
+            accuracy = (double)(correct-wrong)/correct;
+            if(printResult)
+                System.out.println("\nThe accuracy of the program is " + accuracy + "%");
+        }
+        else{
+            accuracy = 0;
+            if(printResult)
+                System.out.println("\nThe accuracy of the program is 0%");
+        }
+
+        if(!printResult){
+            try {
+                FileWriter writer = new FileWriter("accuracyChart.csv", true);
+                BufferedWriter bw = new BufferedWriter(writer);
+                bw.write(accuracy +", "+k);
+                bw.newLine();
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
