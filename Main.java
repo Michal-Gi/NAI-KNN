@@ -2,9 +2,7 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -76,11 +74,9 @@ public class Main {
                     terminate = true;
             }
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-        }
+            }
     }
 
     /**
@@ -106,21 +102,24 @@ public class Main {
                 } else knn.add(d);
             }
         }
-        Stack<Data> result = new Stack<>();
-        for(int i = knn.size()-1; i >= 0; i--){
-           if(result.isEmpty())
-               result.add(knn.get(i));
-           else {
-               if (result.lastElement().getCategory().equals(knn.get(i).getCategory()))
-                   result.push(knn.get(i));
-               else
-                   result.pop();
-           }
 
+        Map<String, Integer> categoryAmountPair = new HashMap<>();
+        for(int i = 0; i < knn.size(); i++){
+            if(!categoryAmountPair.containsKey(knn.get(i).getCategory()))
+                categoryAmountPair.put(knn.get(i).getCategory(), 1);
+            else
+                categoryAmountPair.replace(knn.get(i).getCategory(), categoryAmountPair.get(knn.get(i).getCategory()) + 1);
         }
-        if(result.isEmpty())
-            return knn.get(0).getCategory();
-        return result.get(0).getCategory();
+        String result = knn.get(0).getCategory();
+        int max = categoryAmountPair.get(result);
+        for(String category : categoryAmountPair.keySet()){
+            if(categoryAmountPair.get(category) > max){
+                result = category;
+                max = categoryAmountPair.get(category);
+            }
+        }
+
+        return result;
     }
 
     /**
